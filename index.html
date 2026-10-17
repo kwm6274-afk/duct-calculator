@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="덕트 풍량과 직경으로 유속과 속도압을 계산하는 무료 산업환기 계산기" />
+  <title>덕트 유속 · 속도압 계산기</title>
+  <style>
+    :root { color-scheme: light; --bg: #f4f7fb; --panel: #fff; --ink: #182b44; --sub: #607187; --primary: #1466cc; --deep: #0c438a; --border: #dfe7f1; --pale: #edf5ff; --success: #0b785e; --shadow: 0 18px 45px rgba(26,60,95,.075); }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: radial-gradient(ellipse at top right, #e2edfc 0%, transparent 45%), var(--bg); color: var(--ink); font-family: 'Pretendard Variable', Pretendard, 'Noto Sans KR', 'Malgun Gothic', sans-serif; line-height: 1.55; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .shell { max-width: 1060px; padding: 42px 20px 68px; margin: 0 auto; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; background: #e5f0ff; color: var(--deep); font-weight: 750; letter-spacing:.03em; font-size: 12px; }
+    h1 { font-size: clamp(27px, 4vw, 40px); line-height: 1.2; letter-spacing:-.06em; margin: 14px 0 10px; }
+    .intro { color: var(--sub); margin: 0 0 28px; }
+    .layout { display:grid; grid-template-columns: minmax(0, 1.02fr) minmax(0, .98fr); gap:20px; align-items:start; }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow); padding: 24px; }
+    .section-head { display: flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 17px; }
+    h2 { font-size: 18px; letter-spacing: -.03em; margin: 0; }
+    .tag { background: #ecf7f1; color: #096449; border-radius: 99px; padding: 3px 9px; font-weight:700; font-size: 11px; white-space: nowrap; }
+    .toggle { display:grid; grid-template-columns:repeat(2,1fr); padding:4px; border:1px solid var(--border); background:#f3f6fa; border-radius:12px; gap:4px; margin:0 0 18px; }
+    .toggle button { border:0; border-radius:9px; padding:11px 8px; background:transparent; color:#5a6b80; font-weight: 700; font-size:13px; }
+    .toggle button[aria-selected="true"] { background:#fff; color:var(--deep); box-shadow:0 2px 9px rgba(0,0,0,.08); }
+    .subtitle {font-size:12px;color:var(--sub);font-weight:700; margin:20px 0 8px; }
+    .grid-two { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px; }
+    .field {display:flex; flex-direction:column; gap:7px; min-width:0;}
+    label { color: #344760; font-weight:700; font-size:13px; }
+    .field small { font-size:11px; color:var(--sub); line-height:1.4; }
+    .inputbox {display:flex; align-items:center; border:1px solid #cfdaea; border-radius:12px; background:white; overflow:hidden; transition:border-color .15s,box-shadow .15s;}
+    .inputbox:focus-within {border-color:var(--primary); box-shadow: 0 0 0 3px #deebff;}
+    .inputbox input {border:0; outline:none; background:transparent; color:var(--ink); min-width:0; width:100%; padding:13px 12px; font-variant-numeric:tabular-nums; font-weight:750; font-size:16px;}
+    .inputbox span, .inputbox select { color:#506781; font-size:12px; padding:0 11px; white-space:nowrap; }
+    .inputbox select {border:0;border-left:1px solid var(--border);outline:0;background:#fbfcfe;min-height:46px;font-weight:700;}
+    .hint {border-radius:12px; background:#f1f6fc; color:#61738a; padding:12px 13px; font-size:12px; margin-top:18px; }
+    .actions {display:flex;gap:9px; margin-top:21px;}
+    .action {flex:1;border:1px solid var(--border);background:#fff;padding:12px 10px;border-radius:11px;font-weight:750;font-size:13px;color:#294b72;}
+    .action.primary {background:var(--primary); color:white; border-color:var(--primary);}
+    .action:hover {filter:brightness(.97);}
+    .results {background:linear-gradient(155deg,#0e438c,#1466cb);border-radius:16px;padding:19px 20px;color:#fff;display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;}
+    .result-label {font-size:12px;color:#d6e6ff;font-weight:650;margin-bottom:4px;}
+    .result-value {font-size:clamp(22px, 3vw, 31px);font-weight:850;letter-spacing:-.04em;line-height:1.15;font-variant-numeric:tabular-nums;white-space:nowrap;}
+    .result-unit {font-size:12px;color:#d6e6ff;margin-top:5px;}
+    .pvside {background:#f2f7fe;border-radius:14px;padding:16px 18px;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .mini-label {font-size:12px;color:#5d7188;font-weight:650;margin-bottom:4px;}
+    .mini-num {font-size:21px;font-weight:820;font-variant-numeric:tabular-nums;letter-spacing:-.04em;}
+    .mini-unit {font-size:11px;color:#637991;}
+    .explain {margin-top:17px;border-top:1px solid var(--border);padding-top:17px;}
+    .formula {background:#f7f9fc;border:1px solid #e7edf5;padding:12px 13px;border-radius:11px;word-break:break-word;font-size:13px;color:#2e455e;margin-top:9px;font-variant-numeric:tabular-nums;}
+    .formula strong {color:#143f79;}
+    .error {background:#fff2f0;border:1px solid #f3c6c0;color:#aa382e;padding:12px;border-radius:11px;font-size:13px;margin:0 0 14px;}
+    .notices {margin-top:22px;font-size:12px;color:#687b90;line-height:1.8;}
+    .notices strong {color:#42576e;}
+    footer {margin-top:24px;text-align:center;color:#8998a9;font-size:12px;}
+    [hidden] {display:none !important;}
+    @media(max-width:760px) {.shell{padding:26px 14px 50px}.layout{grid-template-columns:1fr}.panel{padding:20px}.results{padding:19px 16px}.result-value{font-size:27px}}
+    @media(max-width:390px) {.grid-two{grid-template-columns:1fr}.results{grid-template-columns:1fr}.result-value{font-size:30px}}
+  </style>
+</head>
+<body>
+<main class="shell">
+  <div class="eyebrow">INDUSTRIAL VENTILATION · 산업환기</div>
+  <h1>덕트 유속 · 속도압 계산기</h1>
+  <p class="intro">풍량과 덕트 규격을 입력하면 평균 유속과 속도압을 계산합니다. 원형·사각 덕트 및 직접 측정한 유속 입력을 지원합니다.</p>
+  <div class="layout">
+    <section class="panel" aria-labelledby="inputHeading">
+      <div class="section-head"><h2 id="inputHeading">01. 계산 조건 입력</h2><span class="tag">자동 계산</span></div>
+      <div class="toggle" role="tablist" aria-label="계산 방식">
+        <button id="modeFlow" type="button" role="tab" aria-selected="true">풍량·규격으로 계산</button>
+        <button id="modeSpeed" type="button" role="tab" aria-selected="false">유속 직접 입력</button>
+      </div>
+      <div id="flowInputs">
+        <div class="field"><label for="flow">덕트 풍량 (Q)</label><div class="inputbox"><input type="number" id="flow" min="0.001" step="any" value="120" inputmode="decimal" /><select id="flowUnit" aria-label="풍량 단위"><option value="min">m³/min</option><option value="hour">m³/h</option></select></div><small>계산에 사용할 덕트 내 실제 또는 설계 풍량</small></div>
+        <div class="subtitle">덕트 단면 형태</div>
+        <div class="toggle" role="tablist" aria-label="덕트 형태">
+          <button id="shapeRound" type="button" role="tab" aria-selected="true">◯ 원형 덕트</button>
+          <button id="shapeRect" type="button" role="tab" aria-selected="false">▭ 사각 덕트</button>
+        </div>
+        <div id="roundInputs" class="field"><label for="diameter">원형 덕트 내경 (D)</label><div class="inputbox"><input id="diameter" type="number" min="0.001" step="any" value="400" inputmode="decimal"/><span>mm</span></div><small>호칭경이 아닌 실제 내부 직경을 입력하세요.</small></div>
+        <div id="rectInputs" class="grid-two" hidden>
+          <div class="field"><label for="width">내부 폭 (W)</label><div class="inputbox"><input id="width" type="number" min="0.001" step="any" value="500" inputmode="decimal"/><span>mm</span></div></div>
+          <div class="field"><label for="height">내부 높이 (H)</label><div class="inputbox"><input id="height" type="number" min="0.001" step="any" value="250" inputmode="decimal"/><span>mm</span></div></div>
+        </div>
+      </div>
+      <div id="speedInputs" hidden>
+        <div class="field"><label for="speed">덕트 평균 유속 (V)</label><div class="inputbox"><input id="speed" type="number" min="0" step="any" value="15.915" inputmode="decimal"/><span>m/s</span></div><small>현장에서 측정한 평균 유속 또는 이미 산정한 유속을 입력할 수 있습니다.</small></div>
+      </div>
+      <div class="subtitle">공통 조건</div>
+      <div class="field"><label for="density">공기밀도 (ρ)</label><div class="inputbox"><input id="density" type="number" min="0.001" step="any" value="1.2" inputmode="decimal"/><span>kg/m³</span></div><small>기본값 1.2 kg/m³ · 온도·기압에 따라 조정 가능합니다.</small></div>
+      <p class="hint">참고: 속도압은 덕트 평균 유속을 사용한 계산값이며, 피토관으로 측정한 지점별 속도압이나 덕트 정압·전체 압력손실과 동일하지 않습니다.</p>
+      <div class="actions"><button id="resetBtn" class="action" type="button">초기화</button><button id="copyBtn" class="action primary" type="button">계산 결과 복사</button></div>
+    </section>
+    <section class="panel" aria-labelledby="resultHeading" aria-live="polite">
+      <div class="section-head"><h2 id="resultHeading">02. 계산 결과</h2><span class="tag" id="statusTag">계산 완료</span></div>
+      <div id="error" class="error" hidden>양수인 입력값을 확인해 주세요.</div>
+      <div id="dataOutputs">
+        <div class="results">
+          <div><div class="result-label">덕트 평균 유속 (V)</div><div class="result-value" id="outVelocity">15.915</div><div class="result-unit">m/s</div></div>
+          <div><div class="result-label">속도압 (Pv)</div><div class="result-value" id="outPressure">151.98</div><div class="result-unit">Pa</div></div>
+        </div>
+        <div class="pvside">
+          <div><div class="mini-label">속도압 환산</div><div class="mini-num" id="outMmAq">15.498</div><div class="mini-unit">mmAq (mmH₂O)</div></div>
+          <div><div class="mini-label" id="otherLabel">덕트 단면적 (A)</div><div class="mini-num" id="outArea">0.12566</div><div class="mini-unit" id="otherUnit">m²</div></div>
+        </div>
+        <div class="explain">
+          <h2>계산식 및 대입 과정</h2>
+          <div id="formulaArea" class="formula"></div>
+          <div id="formulaVelocity" class="formula"></div>
+          <div id="formulaPressure" class="formula"></div>
+          <div id="formulaMmAq" class="formula"></div>
+        </div>
+      </div>
+      <div class="notices"><strong>사용 시 유의사항</strong><br/>• 유속은 입력한 풍량이 덕트 단면 전체에 균일하게 흐른다고 가정한 평균값입니다.<br/>• 속도압 계산식: Pv = ½ × ρ × V² (Pa). 1 mmAq = 9.80665 Pa.<br/>• 현장 풍속 분포, 실제 내부 치수, 온도·기압, 덕트 압력손실 등은 별도 확인이 필요합니다.</div>
+    </section>
+  </div>
+  <footer>덕트 유속 · 속도압 계산기 · 오프라인 사용 가능 · HTML 단일 파일</footer>
+</main>
+<script>
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const fields = ['flow','flowUnit','diameter','width','height','speed','density'];
+  let mode = 'flow';
+  let shape = 'round';
+  let copyText = '';
+  const fmt = (value, digits=3) => new Intl.NumberFormat('ko-KR',{maximumFractionDigits:digits,minimumFractionDigits:0}).format(value);
+  const valid = value => Number.isFinite(value) && value > 0;
+  const num = id => Number($(id).value);
+  function setTab(id, chosen) { $(id).setAttribute('aria-selected', chosen ? 'true' : 'false'); }
+  function changeMode(next) {
+    mode = next;
+    setTab('modeFlow', mode==='flow'); setTab('modeSpeed',mode==='speed');
+    $('flowInputs').hidden = mode!=='flow'; $('speedInputs').hidden = mode!=='speed';
+    calculate();
+  }
+  function changeShape(next) {
+    shape = next;
+    setTab('shapeRound',shape==='round'); setTab('shapeRect',shape==='rect');
+    $('roundInputs').hidden = shape!=='round'; $('rectInputs').hidden = shape!=='rect';
+    calculate();
+  }
+  function calculate() {
+    const rho = num('density');
+    let A = null, Qmin = null, V = null;
+    let areaExp = '', velExp = '';
+    if (!valid(rho)) return invalidResult();
+    if (mode === 'flow') {
+      const raw = num('flow');
+      if (!valid(raw)) return invalidResult();
+      Qmin = $('flowUnit').value==='hour' ? raw/60 : raw;
+      if (shape==='round') {
+        const d = num('diameter');
+        if (!valid(d)) return invalidResult();
+        const dm = d/1000;
+        A = Math.PI * dm * dm / 4;
+        areaExp = `A = π × (${fmt(d,4)} / 1,000)² / 4 = <strong>${fmt(A,6)} m²</strong>`;
+      } else {
+        const w=num('width'), h=num('height');
+        if (!valid(w) || !valid(h)) return invalidResult();
+        A = (w/1000) * (h/1000);
+        areaExp = `A = (${fmt(w,4)} / 1,000) × (${fmt(h,4)} / 1,000) = <strong>${fmt(A,6)} m²</strong>`;
+      }
+      if (!valid(A)) return invalidResult();
+      V = Qmin / 60 / A;
+      velExp = `V = (Q / 60) ÷ A = (${fmt(Qmin,5)} / 60) ÷ ${fmt(A,7)} = <strong>${fmt(V,4)} m/s</strong>`;
+      $('otherLabel').textContent = '덕트 단면적 (A)'; $('otherUnit').textContent = 'm²';
+      $('outArea').textContent = fmt(A,5);
+    } else {
+      V = num('speed');
+      if (V < 0 || !Number.isFinite(V)) return invalidResult();
+      areaExp = '평균 유속을 직접 입력하여 속도압을 산정합니다.';
+      velExp = `V = <strong>${fmt(V,4)} m/s</strong> (직접 입력)`;
+      $('otherLabel').textContent = '입력 공기밀도 (ρ)'; $('otherUnit').textContent = 'kg/m³';
+      $('outArea').textContent = fmt(rho,4);
+    }
+    const Pv = .5 * rho * V * V;
+    const mmAq = Pv / 9.80665;
+    $('error').hidden = true; $('dataOutputs').hidden = false; $('statusTag').textContent = '계산 완료';
+    $('outVelocity').textContent = fmt(V,3);
+    $('outPressure').textContent = fmt(Pv,2);
+    $('outMmAq').textContent = fmt(mmAq,3);
+    $('formulaArea').innerHTML = areaExp;
+    $('formulaVelocity').innerHTML = velExp;
+    $('formulaPressure').innerHTML = `Pv = ½ × ρ × V² = 0.5 × ${fmt(rho,4)} × ${fmt(V,5)}² = <strong>${fmt(Pv,4)} Pa</strong>`;
+    $('formulaMmAq').innerHTML = `Pv (mmAq) = ${fmt(Pv,4)} ÷ 9.80665 = <strong>${fmt(mmAq,4)} mmAq</strong>`;
+    copyText = [
+      '덕트 유속 · 속도압 계산 결과',
+      `계산 방식: ${mode==='flow'?'풍량·덕트 규격':'유속 직접 입력'}`,
+      ...(mode==='flow' ? [ `덕트 형태: ${shape==='round'?'원형':'사각형'}`, shape==='round'?`내경: ${fmt(num('diameter'),3)} mm`:`내부 폭 × 높이: ${fmt(num('width'),3)} × ${fmt(num('height'),3)} mm`, `풍량: ${fmt(Qmin,5)} m³/min (${fmt(Qmin*60,3)} m³/h)`, `단면적: ${fmt(A,6)} m²` ] : []),
+      `공기밀도: ${fmt(rho,4)} kg/m³`, `평균 유속: ${fmt(V,4)} m/s`, `속도압: ${fmt(Pv,4)} Pa`, `속도압: ${fmt(mmAq,4)} mmAq`,
+      '계산식: V = (Q / 60) / A, Pv = 0.5 × ρ × V², mmAq = Pa / 9.80665'
+    ].join('\n');
+  }
+  function invalidResult() {
+    $('error').hidden = false;
+    $('dataOutputs').hidden = true;
+    $('statusTag').textContent = '입력 확인';
+    copyText='';
+  }
+  fields.forEach(id => $(id).addEventListener('input', calculate));
+  $('flowUnit').addEventListener('change', calculate);
+  $('modeFlow').addEventListener('click',()=>changeMode('flow'));
+  $('modeSpeed').addEventListener('click',()=>changeMode('speed'));
+  $('shapeRound').addEventListener('click',()=>changeShape('round'));
+  $('shapeRect').addEventListener('click',()=>changeShape('rect'));
+  $('resetBtn').addEventListener('click',()=>{
+    $('flow').value='120'; $('flowUnit').value='min'; $('diameter').value='400'; $('width').value='500'; $('height').value='250'; $('speed').value='15.915'; $('density').value='1.2';
+    changeShape('round'); changeMode('flow');
+  });
+  $('copyBtn').addEventListener('click',async()=>{
+    if (!copyText) return;
+    const btn=$('copyBtn'), orig='계산 결과 복사';
+    try {
+      if(navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(copyText);
+      else {
+        const t=document.createElement('textarea');t.value=copyText;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();
+        if(!document.execCommand('copy')) throw new Error('copy failed');t.remove();
+      }
+      btn.textContent='복사 완료 ✓';
+    } catch(e) {btn.textContent='복사 불가 · 화면에서 선택';}
+    window.setTimeout(()=>{btn.textContent=orig},1800);
+  });
+  calculate();
+})();
+</script>
+</body>
+</html>
